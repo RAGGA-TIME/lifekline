@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => {
 
   // Prioritize API_KEY, but fallback to VITE_API_KEY if the user followed standard Vite naming conventions
   const apiKey = env.API_KEY || env.VITE_API_KEY;
+  // GLM API Key: prioritize VITE_GLM_API_KEY (Vite standard), fallback to GLM_API_KEY
+  const glmApiKey = env.VITE_GLM_API_KEY || env.GLM_API_KEY;
 
   return {
     plugins: [react()],
@@ -21,7 +23,10 @@ export default defineConfig(({ mode }) => {
     define: {
       // Safely stringify the key. If it's missing, it will be an empty string, 
       // which will be caught by the check in geminiService.ts
-      'process.env.API_KEY': JSON.stringify(apiKey || '')
+      'process.env.API_KEY': JSON.stringify(apiKey || ''),
+      // GLM API Key: Vite automatically exposes VITE_* variables via import.meta.env
+      // We also define a custom one for backward compatibility
+      'import.meta.env.GLM_API_KEY': JSON.stringify(glmApiKey || '')
     }
   };
 });

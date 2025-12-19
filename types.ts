@@ -8,12 +8,18 @@ export interface UserInput {
   name?: string;
   gender: Gender;
   birthYear: string;   // 出生年份 (如 1990)
-  yearPillar: string;  // 年柱
-  monthPillar: string; // 月柱
-  dayPillar: string;   // 日柱
-  hourPillar: string;  // 时柱
-  startAge: string;    // 起运年龄 (虚岁) - Changed to string to handle input field state easily, parse later
-  firstDaYun: string;  // 第一步大运干支
+  birthMonth: string;  // 出生月份 (如 05)
+  birthDay: string;    // 出生日期 (如 21)
+  birthHour: string;   // 出生小时 (如 14)
+  birthMinute: string;  // 出生分钟 (如 30)
+  calendarType: 'solar' | 'lunar'; // 阳历/阴历
+  birthPlace?: string; // 出生地 (可选)
+  yearPillar: string;  // 年柱 (由AI计算)
+  monthPillar: string; // 月柱 (由AI计算)
+  dayPillar: string;   // 日柱 (由AI计算)
+  hourPillar: string;  // 时柱 (由AI计算)
+  startAge: string;    // 起运年龄 (虚岁) (由AI计算)
+  firstDaYun: string;  // 第一步大运干支 (由AI计算)
   
   // New API Configuration Fields
   modelName: string;   // 使用的模型名称

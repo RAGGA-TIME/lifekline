@@ -1,7 +1,7 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { UserInput, Gender } from '../types';
-import { Loader2, Sparkles, TrendingUp, Settings } from 'lucide-react';
+import { Loader2, Sparkles, Settings } from 'lucide-react';
 
 interface BaziFormProps {
   onSubmit: (data: UserInput) => void;
@@ -13,6 +13,12 @@ const BaziForm: React.FC<BaziFormProps> = ({ onSubmit, isLoading }) => {
     name: '',
     gender: Gender.MALE,
     birthYear: '',
+    birthMonth: '',
+    birthDay: '',
+    birthHour: '',
+    birthMinute: '',
+    calendarType: 'solar',
+    birthPlace: '',
     yearPillar: '',
     monthPillar: '',
     dayPillar: '',
@@ -58,31 +64,12 @@ const BaziForm: React.FC<BaziFormProps> = ({ onSubmit, isLoading }) => {
     onSubmit(formData);
   };
 
-  // Calculate direction for UI feedback
-  const daYunDirectionInfo = useMemo(() => {
-    if (!formData.yearPillar) return '等待输入年柱...';
-
-    const firstChar = formData.yearPillar.trim().charAt(0);
-    const yinStems = ['乙', '丁', '己', '辛', '癸'];
-
-    let isYangYear = true; // default assume Yang if unknown
-    if (yinStems.includes(firstChar)) isYangYear = false;
-
-    let isForward = false;
-    if (formData.gender === Gender.MALE) {
-      isForward = isYangYear; // Male Yang = Forward, Male Yin = Backward
-    } else {
-      isForward = !isYangYear; // Female Yin = Forward, Female Yang = Backward
-    }
-
-    return isForward ? '顺行 (阳男/阴女)' : '逆行 (阴男/阳女)';
-  }, [formData.yearPillar, formData.gender]);
 
   return (
     <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
       <div className="text-center mb-6">
         <h2 className="text-3xl font-serif-sc font-bold text-gray-800 mb-2">八字排盘</h2>
-        <p className="text-gray-500 text-sm">请输入四柱与大运信息以生成分析</p>
+        <p className="text-gray-500 text-sm">请输入出生信息，AI将自动计算四柱与大运</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -96,7 +83,7 @@ const BaziForm: React.FC<BaziFormProps> = ({ onSubmit, isLoading }) => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 outline-none"
               placeholder="姓名"
             />
           </div>
@@ -127,119 +114,133 @@ const BaziForm: React.FC<BaziFormProps> = ({ onSubmit, isLoading }) => {
           </div>
         </div>
 
-        {/* Four Pillars Manual Input */}
+        {/* Birth Information */}
         <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
           <div className="flex items-center gap-2 mb-3 text-amber-800 text-sm font-bold">
             <Sparkles className="w-4 h-4" />
-            <span>输入四柱干支 (必填)</span>
+            <span>出生信息</span>
           </div>
 
-          {/* Birth Year Input - Added as requested */}
+          {/* Birth Date Input */}
+          <div className="mb-4 space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-bold text-gray-600">出生日期</label>
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, calendarType: 'solar' })}
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition ${formData.calendarType === 'solar'
+                      ? 'bg-white text-indigo-700 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  阳历
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, calendarType: 'lunar' })}
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition ${formData.calendarType === 'lunar'
+                      ? 'bg-white text-indigo-700 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  阴历
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1">年</label>
+                <input
+                  type="number"
+                  name="birthYear"
+                  required
+                  min="1900"
+                  max="2100"
+                  value={formData.birthYear}
+                  onChange={handleChange}
+                  placeholder="1990"
+                  className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white text-gray-900 placeholder:text-gray-400 text-center font-bold"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1">月</label>
+                <input
+                  type="number"
+                  name="birthMonth"
+                  required
+                  min="1"
+                  max="12"
+                  value={formData.birthMonth}
+                  onChange={handleChange}
+                  placeholder="05"
+                  className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white text-gray-900 placeholder:text-gray-400 text-center font-bold"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1">日</label>
+                <input
+                  type="number"
+                  name="birthDay"
+                  required
+                  min="1"
+                  max="31"
+                  value={formData.birthDay}
+                  onChange={handleChange}
+                  placeholder="21"
+                  className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white text-gray-900 placeholder:text-gray-400 text-center font-bold"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Birth Time Input */}
           <div className="mb-4">
-            <label className="block text-xs font-bold text-gray-600 mb-1">出生年份 (阳历)</label>
+            <label className="block text-xs font-bold text-gray-600 mb-1">出生时间</label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">时</label>
+                <input
+                  type="number"
+                  name="birthHour"
+                  required
+                  min="0"
+                  max="23"
+                  value={formData.birthHour}
+                  onChange={handleChange}
+                  placeholder="14"
+                  className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white text-gray-900 placeholder:text-gray-400 text-center font-bold"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">分</label>
+                <input
+                  type="number"
+                  name="birthMinute"
+                  required
+                  min="0"
+                  max="59"
+                  value={formData.birthMinute}
+                  onChange={handleChange}
+                  placeholder="30"
+                  className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white text-gray-900 placeholder:text-gray-400 text-center font-bold"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Birth Place Input */}
+          <div>
+            <label className="block text-xs font-bold text-gray-600 mb-1">出生地 (可选)</label>
             <input
-              type="number"
-              name="birthYear"
-              required
-              min="1900"
-              max="2100"
-              value={formData.birthYear}
+              type="text"
+              name="birthPlace"
+              value={formData.birthPlace || ''}
               onChange={handleChange}
-              placeholder="如: 1990"
-              className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white font-bold"
+              placeholder="如: 北京市"
+              className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white text-gray-900 placeholder:text-gray-400"
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1">年柱 (Year)</label>
-              <input
-                type="text"
-                name="yearPillar"
-                required
-                value={formData.yearPillar}
-                onChange={handleChange}
-                placeholder="如: 甲子"
-                className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white text-center font-serif-sc font-bold"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1">月柱 (Month)</label>
-              <input
-                type="text"
-                name="monthPillar"
-                required
-                value={formData.monthPillar}
-                onChange={handleChange}
-                placeholder="如: 丙寅"
-                className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white text-center font-serif-sc font-bold"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1">日柱 (Day)</label>
-              <input
-                type="text"
-                name="dayPillar"
-                required
-                value={formData.dayPillar}
-                onChange={handleChange}
-                placeholder="如: 戊辰"
-                className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white text-center font-serif-sc font-bold"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1">时柱 (Hour)</label>
-              <input
-                type="text"
-                name="hourPillar"
-                required
-                value={formData.hourPillar}
-                onChange={handleChange}
-                placeholder="如: 壬戌"
-                className="w-full px-3 py-2 border border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white text-center font-serif-sc font-bold"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Da Yun Manual Input */}
-        <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-          <div className="flex items-center gap-2 mb-3 text-indigo-800 text-sm font-bold">
-            <TrendingUp className="w-4 h-4" />
-            <span>大运排盘信息 (必填)</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1">起运年龄 (虚岁)</label>
-              <input
-                type="number"
-                name="startAge"
-                required
-                min="1"
-                max="100"
-                value={formData.startAge}
-                onChange={handleChange}
-                placeholder="如: 3"
-                className="w-full px-3 py-2 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-center font-bold"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1">第一步大运</label>
-              <input
-                type="text"
-                name="firstDaYun"
-                required
-                value={formData.firstDaYun}
-                onChange={handleChange}
-                placeholder="如: 丁卯"
-                className="w-full px-3 py-2 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-center font-serif-sc font-bold"
-              />
-            </div>
-          </div>
-          <p className="text-xs text-indigo-600/70 mt-2 text-center">
-            当前大运排序规则：
-            <span className="font-bold text-indigo-900">{daYunDirectionInfo}</span>
-          </p>
         </div>
 
         {/* API Configuration Section */}
@@ -257,7 +258,7 @@ const BaziForm: React.FC<BaziFormProps> = ({ onSubmit, isLoading }) => {
                 value={formData.modelName}
                 onChange={handleChange}
                 placeholder="gemini-3-pro-preview"
-                className={`w-full px-3 py-2 border rounded-lg text-xs font-mono outline-none ${formErrors.modelName ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:ring-2 focus:ring-gray-400'}`}
+                className={`w-full px-3 py-2 border rounded-lg text-xs font-mono outline-none bg-white text-gray-900 placeholder:text-gray-400 ${formErrors.modelName ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:ring-2 focus:ring-gray-400'}`}
               />
               {formErrors.modelName && <p className="text-red-500 text-xs mt-1">{formErrors.modelName}</p>}
             </div>
@@ -269,7 +270,7 @@ const BaziForm: React.FC<BaziFormProps> = ({ onSubmit, isLoading }) => {
                 value={formData.apiBaseUrl}
                 onChange={handleChange}
                 placeholder="https://max.openai365.top/v1"
-                className={`w-full px-3 py-2 border rounded-lg text-xs font-mono outline-none ${formErrors.apiBaseUrl ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:ring-2 focus:ring-gray-400'}`}
+                className={`w-full px-3 py-2 border rounded-lg text-xs font-mono outline-none bg-white text-gray-900 placeholder:text-gray-400 ${formErrors.apiBaseUrl ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:ring-2 focus:ring-gray-400'}`}
               />
               {formErrors.apiBaseUrl && <p className="text-red-500 text-xs mt-1">{formErrors.apiBaseUrl}</p>}
             </div>
@@ -281,7 +282,7 @@ const BaziForm: React.FC<BaziFormProps> = ({ onSubmit, isLoading }) => {
                 value={formData.apiKey}
                 onChange={handleChange}
                 placeholder="sk-..."
-                className={`w-full px-3 py-2 border rounded-lg text-xs font-mono outline-none ${formErrors.apiKey ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:ring-2 focus:ring-gray-400'}`}
+                className={`w-full px-3 py-2 border rounded-lg text-xs font-mono outline-none bg-white text-gray-900 placeholder:text-gray-400 ${formErrors.apiKey ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:ring-2 focus:ring-gray-400'}`}
               />
               {formErrors.apiKey && <p className="text-red-500 text-xs mt-1">{formErrors.apiKey}</p>}
             </div>

@@ -2,9 +2,9 @@
 import React, { useState, useMemo } from 'react';
 import LifeKLineChart from './components/LifeKLineChart';
 import AnalysisResult from './components/AnalysisResult';
-import ImportDataMode from './components/ImportDataMode';
+import ConfirmDataMode from './components/ConfirmDataMode';
 import { LifeDestinyResult } from './types';
-import { Sparkles, AlertCircle, Download, Printer, Trophy, FileDown, FileUp } from 'lucide-react';
+import { Sparkles, AlertCircle, Download, Printer, Trophy, FileDown } from 'lucide-react';
 
 const App: React.FC = () => {
   const [result, setResult] = useState<LifeDestinyResult | null>(null);
@@ -294,32 +294,10 @@ const App: React.FC = () => {
                 结合<strong>传统八字命理</strong>与<strong>金融可视化技术</strong>，
                 将您的一生运势绘制成类似股票行情的K线图。
               </p>
-
-              {/* 使用说明 */}
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-100 mb-6 text-left w-full max-w-lg">
-                <h3 className="font-bold text-indigo-800 mb-2">📝 使用方法</h3>
-                <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
-                  <li>填写八字信息，生成专属提示词</li>
-                  <li>复制提示词到任意 AI（ChatGPT、Claude、Gemini 等）</li>
-                  <li>将 AI 返回的 JSON 数据粘贴回来</li>
-                </ol>
-              </div>
-
-              {/* 快速导入 JSON 文件 */}
-              <label className="flex items-center gap-3 px-6 py-3 bg-white border-2 border-dashed border-emerald-300 rounded-xl cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-all group mb-4">
-                <FileUp className="w-6 h-6 text-emerald-500 group-hover:text-emerald-600" />
-                <span className="text-base font-medium text-gray-600 group-hover:text-emerald-700">已有 JSON 文件？点击直接导入</span>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImportJsonFile}
-                  className="hidden"
-                />
-              </label>
             </div>
 
-            {/* 导入模式组件 */}
-            <ImportDataMode onDataImport={handleDataImport} />
+            {/* 确认数据组件 */}
+            <ConfirmDataMode onDataImport={handleDataImport} />
 
             {error && (
               <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-lg border border-red-100 max-w-md w-full animate-bounce-short">
