@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LifeDestinyResult, Gender } from '../types';
 import { CheckCircle, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
 import { generateLifeAnalysisWithGLM } from '../services/glmService';
+import { authService } from '../services/authService';
+import { databaseService } from '../services/databaseService';
 import { getBaziDetail } from 'bazi-mcp';
 
 interface ConfirmDataModeProps {
@@ -9,6 +12,7 @@ interface ConfirmDataModeProps {
 }
 
 const ConfirmDataMode: React.FC<ConfirmDataModeProps> = ({ onDataImport }) => {
+    const navigate = useNavigate();
     const [step, setStep] = useState<1 | 2>(1);
     const [baziInfo, setBaziInfo] = useState({
         name: '',
@@ -130,9 +134,29 @@ const ConfirmDataMode: React.FC<ConfirmDataModeProps> = ({ onDataImport }) => {
             return;
         }
 
+        // 检查登录状态
+        if (!authService.isAuthenticated()) {
+            setError('请先登录后再生成人生K线');
+            setTimeout(() => {
+                navigate('/login');
+            }, 1000);
+            return;
+        }
+
+        const currentUser = authService.getCurrentUser();
+        if (!currentUser) return;
+
+        // 检查并使用免费次数
+        const hasQuota = await databaseService.useFreeQuota(currentUser.id);
+
+        if (!hasQuota) {
+            setError('免费使用次数已用完，点击右上角"分享"按钮可获得1次免费使用次数（每日限1次）');
+            return;
+        }
+
         setError(null);
         setIsLoading(true);
-        setStreamingText(''); // Reset streaming text
+        setStreamingText('');
 
         try {
             const result = await generateLifeAnalysisWithGLM({
@@ -147,13 +171,12 @@ const ConfirmDataMode: React.FC<ConfirmDataModeProps> = ({ onDataImport }) => {
                 birthPlace: baziInfo.birthPlace,
                 apiKey: apiKey,
                 modelName: 'glm-4.6',
-                baziResult: baziResult, // 传递预计算的八字结果
+                baziResult: baziResult,
                 onStream: (text: string) => {
                     setStreamingText(text);
                 },
             });
 
-            // Clear streaming text and import result
             setStreamingText('');
             onDataImport(result);
         } catch (err: any) {

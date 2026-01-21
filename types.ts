@@ -77,3 +77,46 @@ export interface LifeDestinyResult {
   chartData: KLinePoint[];
   analysis: AnalysisData;
 }
+
+export enum LoginType {
+  PHONE = 'phone',
+  WECHAT = 'wechat',
+}
+
+export interface User {
+  id: string;
+  phone?: string;
+  nickname?: string;
+  avatar?: string;
+  openid?: string;
+  loginType: LoginType;
+  createdAt: string;
+  login_type?: 'phone' | 'wechat';
+  created_at?: string;
+}
+
+export interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  token: string | null;
+}
+
+export interface LoginCredentials {
+  type: LoginType;
+  phone?: string;
+  code?: string;
+  openid?: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  user: User;
+  token: string;
+  message?: string;
+}
+
+export interface SendCodeResponse {
+  success: boolean;
+  message: string;
+  countdown?: number;
+}
