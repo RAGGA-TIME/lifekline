@@ -1,7 +1,6 @@
 import { User } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-
 const WECHAT_APP_ID = import.meta.env.VITE_WECHAT_APP_ID || 'wx89b6c639648af584';
 const WECHAT_APP_SECRET = import.meta.env.VITE_WECHAT_APP_SECRET || '';
 
@@ -21,7 +20,7 @@ class ApiService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`API请求失败: ${response.status} - ${errorText}`);
+        throw new Error(`API请求失败 ${response.status} - ${errorText}`);
       }
 
       return await response.json();
@@ -146,8 +145,6 @@ class ApiService {
         message: error.message || '微信登录失败',
       };
     }
-  }
-}
   }
 
   async recordUsage(userId: string, usageType: 'free' | 'share' | 'paid', count: number, remark?: string): Promise<void> {
