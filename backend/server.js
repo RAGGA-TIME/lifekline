@@ -202,6 +202,95 @@ app.post('/api/quota/share', async (req, res) => {
   }
 });
 
+// 微信登录相关API
+
+// 微信H5授权回调
+app.post('/api/wechat/login', async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({ success: false, message: '授权码不能为空' });
+    }
+
+    // 微信配置
+    const appId = 'wx89b6c639648af584';
+    const appSecret = '0dbf637536d8aa0dc2905b11f2df985b';
+
+    // 1. 使用code换取access_token
+    const tokenUrl = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${appSecret}&code=${code}&grant_type=authorization_code`;
+    
+    const tokenResponse = await fetch(tokenUrl);
+    const tokenData = await tokenResponse.json();
+
+    if (tokenData.errcode !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: '获取access_token失败: ' + (tokenData.errmsg || '未知错误')
+      });
+    }
+
+    const accessToken = tokenData.access_token;
+    const openid = tokenData.openid;
+
+    // 2. 使用access_token和openid获取用户信息
+    const userInfoUrl = `https://api.weixin.qq.com/sns/userinfo?access_token=${accessToken}&openid=${openid}&lang=zh_CN`;
+    
+    const userInfoResponse = await fetch(userInfoUrl);
+    const userInfoData = await userInfoResponse.json();
+
+    if (userInfoData.errcode !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: '获取用户信息失败: ' + (userInfoData.errmsg || '未知错误')
+      });
+    }
+
+    // 3. 生成用户ID
+    const userId = `wechat_${openid}`;
+
+    // 4. 创建或更新用户
+    await pool.execute(
+      `INSERT INTO users (id, phone, nickname, avatar, openid, login_type) 
+       VALUES (?, NULL, ?, ?, ?, ?) 
+       ON DUPLICATE KEY UPDATE 
+       nickname = VALUES(nickname), 
+       avatar = VALUES(avatar), 
+       openid = VALUES(openid)`,
+      [userId, userInfoData.nickname, userInfoData.headimgurl, openid, 'wechat']
+    );
+
+    // 5. 初始化免费次数
+    await pool.execute(
+      `INSERT INTO user_free_quota (user_id, remaining_count) 
+       VALUES (?, 1) 
+       ON DUPLICATE KEY UPDATE 
+       user_id = user_id`,
+      [userId]
+    );
+
+    // 6. 生成token
+    const token = `wechat_token_${Date.now()}_${Math.random().toString(36).substr(2, 15)}`;
+
+    res.json({
+      success: true,
+      user: {
+        id: userId,
+        openid: openid,
+        nickname: userInfoData.nickname,
+        avatar: userInfoData.headimgurl,
+        loginType: 'wechat',
+        createdAt: new Date().toISOString(),
+      },
+      token,
+      message: '微信登录成功'
+    });
+  } catch (error: any) {
+    console.error('微信登录失败:', error);
+    res.status(500).json({ success: false, message: error.message || '微信登录失败' });
+  }
+});
+
 // 获取今日分享状态
 app.get('/api/quota/share-status/:userId', async (req, res) => {
   try {

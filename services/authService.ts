@@ -1,8 +1,11 @@
 import { LoginResponse, SendCodeResponse, AuthState, User, LoginType } from '../types';
 import { tencentSmsService } from './tencentSmsService';
 import { databaseService } from './databaseService';
+import { apiService } from './apiService';
 
 const AUTH_STORAGE_KEY = 'lifekline_auth';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 class AuthService {
   private authState: AuthState | null = null;
@@ -132,7 +135,7 @@ class AuthService {
   }
 
   async initWeChatH5Login(): Promise<void> {
-    const appId = import.meta.env.VITE_WECHAT_APP_ID || '';
+    const appId = import.meta.env.VITE_WECHAT_APP_ID || 'wx89b6c639648af584';
     const redirectUri = encodeURIComponent(window.location.origin + '/wechat-callback');
     const scope = 'snsapi_userinfo';
     const state = Date.now().toString();
@@ -175,39 +178,54 @@ class AuthService {
   }
 
   async handleWeChatCallback(code: string, _state: string): Promise<LoginResponse> {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    const user: User = {
-      id: `wechat_user_${Date.now()}`,
-      openid: `openid_${code.substring(0, 8)}`,
-      nickname: '微信用户',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wechat',
-      loginType: LoginType.WECHAT,
-      createdAt: new Date().toISOString(),
-      login_type: 'wechat',
-    };
+    try {
+      const result = await apiService.wechatLogin(code);
 
-    const existingUser = await databaseService.getUserById(user.id);
-    if (!existingUser) {
-      await databaseService.createUser(user);
+      if (!result.success) {
+        return {
+          success: false,
+          user: {} as User,
+          token: '',
+          message: result.message || '登录失败',
+        };
+      }
+
+      const user: User = {
+        id: result.user.id,
+        phone: result.user.phone,
+        nickname: result.user.nickname,
+        avatar: result.user.avatar,
+        openid: result.user.openid,
+        loginType: result.user.login_type === 'wechat' ? LoginType.WECHAT : LoginType.PHONE,
+        createdAt: result.user.createdAt,
+        login_type: result.user.login_type,
+      };
+
+      this.authState = {
+        isAuthenticated: true,
+        user,
+        token: result.token,
+      };
+
+      this.saveToStorage();
+
+      return {
+        success: true,
+        user,
+        token: result.token,
+        message: '微信登录成功',
+      };
+    } catch (error: any) {
+      console.error('微信登录失败:', error);
+      return {
+        success: false,
+        user: {} as User,
+        token: '',
+        message: error.message || '登录失败，请重试',
+      };
     }
-
-    const token = `wechat_token_${Date.now()}_${Math.random().toString(36).substr(2)}`;
-
-    this.authState = {
-      isAuthenticated: true,
-      user,
-      token,
-    };
-
-    this.saveToStorage();
-
-    return {
-      success: true,
-      user,
-      token,
-      message: '微信登录成功',
-    };
   }
 
   logout(): void {

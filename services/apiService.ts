@@ -2,6 +2,9 @@ import { User } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
+const WECHAT_APP_ID = import.meta.env.VITE_WECHAT_APP_ID || 'wx89b6c639648af584';
+const WECHAT_APP_SECRET = import.meta.env.VITE_WECHAT_APP_SECRET || '';
+
 class ApiService {
   async request<T>(
     endpoint: string,
@@ -108,7 +111,7 @@ class ApiService {
       const response = await this.request<{
         canShare: boolean;
         lastShareDate: string | null;
-      }>(`/quota/share-status/${userId}`);
+      }>(`/api/quota/share-status/${userId}`);
       return {
         canShare: response.canShare || false,
         lastShareDate: response.lastShareDate ? new Date(response.lastShareDate) : null,
@@ -116,6 +119,35 @@ class ApiService {
     } catch {
       return { canShare: false, lastShareDate: null };
     }
+  }
+
+  async wechatLogin(code: string): Promise<{
+    success: boolean;
+    user: User | null;
+    token: string;
+    message: string;
+  }> {
+    try {
+      return await this.request<{
+        success: boolean;
+        user: User | null;
+        token: string;
+        message: string;
+      }>(`/api/wechat/login`, {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+      });
+    } catch (error: any) {
+      console.error('微信登录失败:', error);
+      return {
+        success: false,
+        user: null,
+        token: '',
+        message: error.message || '微信登录失败',
+      };
+    }
+  }
+}
   }
 
   async recordUsage(userId: string, usageType: 'free' | 'share' | 'paid', count: number, remark?: string): Promise<void> {

@@ -232,14 +232,14 @@ const MainContent: React.FC = () => {
               <p className="text-xs text-gray-500 uppercase tracking-widest">Life Destiny K-Line</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1.5 rounded-full">
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1.5 rounded-full">
               <Sparkles className="w-4 h-4 text-amber-500" />
               基于 AI 大模型驱动
             </div>
             {currentUser ? (
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-full">
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="hidden sm:flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-full">
                   <User className="w-4 h-4 text-indigo-600" />
                   <span className="text-sm font-medium text-indigo-700">{currentUser.nickname}</span>
                   <button
@@ -252,21 +252,22 @@ const MainContent: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="flex items-center gap-2 bg-green-500 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-green-600 transition-colors"
+                  className="flex items-center gap-1.5 md:gap-2 bg-green-500 text-white px-2 md:px-4 py-1.5 rounded-full text-xs md:text-sm font-medium hover:bg-green-600 transition-colors"
                   title="分享获取免费次数"
                 >
-                  <Share2 className="w-4 h-4" />
+                  <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                   <span className="hidden sm:inline">分享</span>
-                  <span className="font-bold">{remainingQuota}次</span>
+                  <span className="font-bold">{remainingQuota}</span>
+                  <span className="hidden sm:inline">次</span>
                 </button>
               </div>
             ) : (
               <button
                 onClick={handleLogin}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-indigo-700 transition-colors"
+                className="flex items-center gap-1.5 md:gap-2 bg-indigo-600 text-white px-3 md:px-4 py-1.5 rounded-full text-xs md:text-sm font-medium hover:bg-indigo-700 transition-colors"
               >
-                <LogIn className="w-4 h-4" />
-                登录
+                <LogIn className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">登录</span>
               </button>
             )}
           </div>
